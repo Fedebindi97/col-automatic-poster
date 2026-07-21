@@ -3,9 +3,9 @@ import PIL
 
 class SocialMediaPost:
     
-    def __init__(self, text: str, image: PIL.Image):
+    def __init__(self, text: str, images: list[PIL.Image]):
         self.text = text
-        self.image = image
+        self.images = images
 
 class SocialMediaPostCollection:
 

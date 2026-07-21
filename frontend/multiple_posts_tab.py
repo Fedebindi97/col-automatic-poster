@@ -12,10 +12,14 @@ def multiple_posts_tab():
             )
     )
 
-    prepare_list_of_posts = st.button(
-        label = "Fetch and prepare list of posts"
+    st.session_state.fetch_list_of_posts = st.button(
+        label = "Fetch list of posts from Telegram"
     )
 
-    download_list_of_posts = st.button(
+    st.session_state.prepare_list_of_posts = st.button(
+        label = "Prepare captions for posts"
+    )
+
+    st.session_state.download_list_of_posts = st.button(
         label = "Download list of posts"
     )

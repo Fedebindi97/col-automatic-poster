@@ -9,7 +9,7 @@ class FoundationModel(ABC):
         self.system_instructions = system_instructions
 
     @abstractmethod
-    def generate_text(self, prompt: str, image: PIL.Image) -> str:
+    def generate_text(self, prompt: str, images: list[PIL.Image]) -> str:
         pass
 
 class APIModel(FoundationModel):
@@ -20,7 +20,7 @@ class APIModel(FoundationModel):
             api_key = gemini_api_key
         )
 
-    def generate_text(self, prompt, image):
+    def generate_text(self, prompt, images):
         interaction = self.client.interactions.create(
             model="gemini-3.5-flash",
             input="Explain how AI works in a few words"

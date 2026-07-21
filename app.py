@@ -1,5 +1,5 @@
 import streamlit as st
-from backend import TelegramConnector, FoundationModel, XConnector, BskyConnector, APIModel, LocalModel, SYSTEM_INSTRUCTIONS
+from backend import SocialMediaPost, TelegramConnector, XConnector, BskyConnector, APIModel, LocalModel, SYSTEM_INSTRUCTIONS
 from frontend import model_prompt_tab, multiple_posts_tab, single_post_tab
 import configparser
 
@@ -14,6 +14,10 @@ config.read('config.ini')
 LOCAL = config['DEFAULT']['local']
 
 
+# Initialize session state variables, if needed
+if 'post_rewritten_text' not in st.session_state:
+    st.session_state.post_rewritten_text = ''
+
 # Define useful objects
 if LOCAL:
     st.session_state.foundation_model = LocalModel()
@@ -24,9 +28,9 @@ else:
     )
 st.session_state.telegram_connector = TelegramConnector()
 if st.session_state.social_network == 'Bluesky':
-    social_network_connector = BskyConnector()
+    st.session_state.social_network_connector = BskyConnector()
 else:
-    social_network_connector = XConnector()
+    st.session_state.social_network_connector = XConnector()
 
 # App flow
 st.set_page_config(
@@ -48,11 +52,27 @@ tab1, tab2, tab3 = st.tabs(["Convert a single post", "Convert list of posts from
 
 with tab1:
     single_post_tab(st.session_state.social_network)
-    #convert post, post post
+    if st.session_state.create_single_post:
+        st.session_state.post_rewritten_text = st.session_state.foundation_model.generate_text(
+            st.session_state.post_raw_text,
+            st.session_state.image_files
+        )
+        st.session_state.post_to_share = SocialMediaPost(
+            text = st.session_state.post_rewritten_text,
+            images = st.session_state.image_files
+        )
+        st.rerun()
+    if st.session_state.post_to_social_network:
+        st.session_state.social_network_connector.post(
+            st.session_state.post_to_share
+        )
+        st.success('Post shared on' + st.session_state.social_network + '!')
 
 with tab2:
     multiple_posts_tab()
     # get posts
 
 with tab3:
-    model_prompt_tab(baseline_prompt=SYSTEM_INSTRUCTIONS.format(social_network=st.session_state.social_network))
+    model_prompt_tab(
+        baseline_prompt=SYSTEM_INSTRUCTIONS.format(social_network=st.session_state.social_network)
+    )

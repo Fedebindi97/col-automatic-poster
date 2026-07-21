@@ -16,18 +16,19 @@ def single_post_tab(social_network):
             accept_multiple_files = True
         )
 
-    create_single_post = st.button(
+    st.session_state.create_single_post = st.button(
         label = "Rewrite text",
         disabled = st.session_state.post_raw_text == ''
     )
 
-    with st.container(height = 350):
-        pass
-        #st.write(st.session_state.post_rewritten_text)
+    col1, col2 = st.columns(2)
 
-    post_to_social_network = st.button(
-        label = "Post to " + social_network,
-        disabled = True#st.session_state.post_rewritten_text == ''
-    )
+    with col1:
+        with st.container(height = 350):
+            st.write(st.session_state.post_rewritten_text)
 
-    
+    with col2:
+        st.session_state.post_to_social_network = st.button(
+            label = "Post to " + social_network,
+            disabled = st.session_state.post_rewritten_text == ''
+        )
