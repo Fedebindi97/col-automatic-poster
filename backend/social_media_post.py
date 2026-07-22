@@ -9,8 +9,8 @@ class SocialMediaPost:
 
 class SocialMediaPostCollection:
 
-    def __init__(self, post_collection: list[SocialMediaPost]):
-        self.post_connection = post_collection
+    def __init__(self, raw_texts_images):
+        self.raw_texts_images = raw_texts_images
 
     def save(self):
         pass

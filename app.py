@@ -1,5 +1,5 @@
 import streamlit as st
-from backend import SocialMediaPost, TelegramConnector, XConnector, BskyConnector, APIModel, LocalModel, SYSTEM_INSTRUCTIONS
+from backend import SocialMediaPost, SocialMediaPostCollection, TelegramConnector, XConnector, BskyConnector, APIModel, LocalModel, SYSTEM_INSTRUCTIONS
 from frontend import model_prompt_tab, multiple_posts_tab, single_post_tab
 import configparser
 
@@ -8,11 +8,10 @@ import os
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
+LOCAL = True
 config = configparser.ConfigParser()
 config.read('config.ini')
-LOCAL = config['DEFAULT']['local']
-
+LOCAL = config.getboolean('DEFAULT', 'local', fallback=LOCAL)
 
 # Initialize session state variables, if needed
 if 'post_rewritten_text' not in st.session_state:
@@ -27,10 +26,6 @@ else:
         system_instructions = st.session_state.llm_system_instructions
     )
 st.session_state.telegram_connector = TelegramConnector()
-if st.session_state.social_network == 'Bluesky':
-    st.session_state.social_network_connector = BskyConnector()
-else:
-    st.session_state.social_network_connector = XConnector()
 
 # App flow
 st.set_page_config(
@@ -47,6 +42,11 @@ with st.sidebar:
         label = "Select social network",
         options = ["Bluesky","X"]
     )
+
+if st.session_state.social_network == 'Bluesky':
+    st.session_state.social_network_connector = BskyConnector()
+else:
+    st.session_state.social_network_connector = XConnector()
 
 tab1, tab2, tab3 = st.tabs(["Convert a single post", "Convert list of posts from the Telegram channel", "Update LLM prompt"])
 
@@ -70,7 +70,18 @@ with tab1:
 
 with tab2:
     multiple_posts_tab()
-    # get posts
+    if st.session_state.fetch_list_of_posts:
+        raw_lists_texts_images = st.session_state.telegram_connector.fetch_posts_from_telegram_channel(
+            date_start = st.session_state.date_range_multiple_posts[0],
+            date_end = st.session_state.date_range_multiple_posts[1]
+        )
+        st.session_state.posts_collection = SocialMediaPostCollection(
+            raw_texts_images = raw_lists_texts_images
+        )
+    if st.session_state.prepare_list_of_posts:
+        st.session_state.posts_collection.prepare_posts(st.session_state.foundation_model)
+    if st.session_state.download_list_of_posts:
+        st.session_state.posts_collection.download_posts()
 
 with tab3:
     model_prompt_tab(
